@@ -7,6 +7,7 @@ use ccheng\task\common\helpers\DateHelpers;
 use ccheng\task\common\enums\ErrorEnum;
 use ccheng\task\common\helpers\RedisLock;
 use ccheng\task\common\models\Task;
+use ccheng\task\common\models\forms\TaskCreateForm;
 use common\enums\TaskStatusEnum;
 use Exception;
 use \Yii;
@@ -14,6 +15,123 @@ use \Yii;
 class TaskService
 {
 
+    /**
+     * 创建 Task
+     * @param array $data
+     * @return bool|string
+     * @throws Exception
+     */
+    public static function createTask(array $data)
+    {
+        $taskForm = new TaskCreateForm();
+        $taskForm->attributes = $data;
+        if ($taskForm->validate()) {
+            return $taskForm->save();
+        } else {
+            throw new Exception(ModelHelper::getModelError($taskForm));
+        }
+    }
+
+    /**
+     * 更新 Task
+     * @param Task $task
+     * @param array $data
+     * @return bool|false|int
+     * @throws \Throwable
+     */
+    public static function updateTask(Task $task, array $data)
+    {
+        $lock = new RedisLock($task->cc_task_key);
+        try {
+            if ($lock->repeatLock(TaskConst::TASK_LOCK_TIME, TaskConst::TASK_LOCK_COUNT)) {
+                if ($task->cc_task_status == TaskStatusEnum::TASK_STATUS_RUN) {
+                    ErrorEnum::throwException(ErrorEnum::TASK_IS_RUNNING);
+                }
+
+                if (\Yii::$app->queue->isWaiting($task->cc_task_queue_id)) {
+                    \Yii::$app->queue->remove($task->cc_task_queue_id);
+                    $task->load($data, '');
+                    $task->scenario = Task::SCENARIO_UPDATE;
+                    return $task->update();
+                } else {
+                    ErrorEnum::throwException(ErrorEnum::TASK_IS_RUNNING);
+                }
+            } else {
+                ErrorEnum::throwException(ErrorEnum::TASK_ACTION_LOCK_FAILED);
+            }
+        } catch (\Exception $e) {
+            ErrorEnum::throwException($e->getCode());
+        } finally {
+            $lock->unlock();
+        }
+        return false;
+    }
+
+    /**
+     * 执行 Task
+     * @param Task $task
+     * @return bool|void
+     * @throws Exception
+     */
+    public static function executeTask(Task $task)
+    {
+        $lock = new RedisLock($task->cc_task_key);
+        try {
+            if ($lock->repeatLock(TaskConst::TASK_LOCK_TIME, TaskConst::TASK_LOCK_COUNT)) {
+                if ($task->cc_task_status == TaskStatusEnum::TASK_STATUS_RUN) {
+                    ErrorEnum::throwException(ErrorEnum::TASK_IS_RUNNING);
+                }
+
+                if (\Yii::$app->queue->isWaiting($task->cc_task_queue_id)) {
+                    \Yii::$app->queue->remove($task->cc_task_queue_id);
+                    return self::process($task);
+                } else {
+                    ErrorEnum::throwException(ErrorEnum::TASK_IS_RUNNING);
+                }
+            } else {
+                ErrorEnum::throwException(ErrorEnum::TASK_ACTION_LOCK_FAILED);
+            }
+        } catch (\Exception $e) {
+            ErrorEnum::throwException($e->getCode());
+        } finally {
+            $lock->unlock();
+        }
+        return false;
+    }
+
+    /**
+     * 删除 Task
+     * @param Task $task
+     * @return bool|false|int
+     * @throws \Throwable
+     */
+    public static function deleteTask(Task $task)
+    {
+        $lock = new RedisLock($task->cc_task_key);
+        try {
+            if ($lock->repeatLock(TaskConst::TASK_LOCK_TIME, TaskConst::TASK_LOCK_COUNT)) {
+                if ($task->cc_task_status == TaskStatusEnum::TASK_STATUS_RUN) {
+                    ErrorEnum::throwException(ErrorEnum::TASK_IS_RUNNING);
+                }
+                if ($task->cc_task_queue_id) {
+                    if (\Yii::$app->queue->isWaiting($task->cc_task_queue_id)) {
+                        \Yii::$app->queue->remove($task->cc_task_queue_id);
+                    } else {
+                        ErrorEnum::throwException(ErrorEnum::TASK_IS_RUNNING);
+                    }
+                }
+                return $task->delete();
+            } else {
+                ErrorEnum::throwException(ErrorEnum::TASK_ACTION_LOCK_FAILED);
+            }
+        } catch (\Exception $e) {
+            ErrorEnum::throwException($e->getCode());
+        } finally {
+            $lock->unlock();
+        }
+        return false;
+
+    }
 
     /**
      * 创建一个新的Task.
@@ -127,6 +245,7 @@ class TaskService
             } else {
                 $task->cc_task_status = TaskStatusEnum::TASK_STATUS_TERMINATED;
             }
+            $task->cc_task_queue_id = 0;
             $task->cc_task_next_run_time = self::getNextRunDate($task->cc_task_retry_times);
         } else {
 
@@ -148,6 +267,7 @@ class TaskService
         } else {
             $task->cc_task_status = TaskStatusEnum::TASK_STATUS_TERMINATED;
         }
+        $task->cc_task_queue_id = 0;
         $task->cc_task_execute_log = sprintf("====%s====", $task->cc_task_retry_times)
             . $ex->getMessage() . $ex->getTraceAsString();
 
@@ -181,7 +301,8 @@ class TaskService
             'cc_task_status' => [
                 TaskStatusEnum::TASK_STATUS_OPEN,
                 TaskStatusEnum::TASK_STATUS_ERROR
-            ]
+            ],
+            'cc_task_queue_id' => 0
         ]);
         $query->andWhere(['>', 'cc_task_next_run_time', time() - 60]);
         $query->andWhere(['<', 'cc_task_abort_time', time()]);
@@ -189,87 +310,12 @@ class TaskService
         return $query;
     }
 
-    public static function deleteTask(Task $task)
-    {
-        $lock = new RedisLock($task->cc_task_key);
-        try {
-            if ($lock->repeatLock(TaskConst::TASK_LOCK_TIME, TaskConst::TASK_LOCK_COUNT)) {
-                if ($task->cc_task_status == TaskStatusEnum::TASK_STATUS_RUN) {
-                    ErrorEnum::throwException(ErrorEnum::TASK_IS_RUNNING);
-                }
-                if ($task->cc_task_queue_id) {
-                    if (\Yii::$app->queue->isWaiting($task->cc_task_queue_id)) {
-                        \Yii::$app->queue->remove($task->cc_task_queue_id);
-                    } else {
-                        ErrorEnum::throwException(ErrorEnum::TASK_IS_RUNNING);
-                    }
-                }
-                return $task->delete();
-            } else {
-                ErrorEnum::throwException(ErrorEnum::TASK_ACTION_LOCK_FAILED);
-            }
-        } catch (\Exception $e) {
-            ErrorEnum::throwException($e->getCode());
-        } finally {
-            $lock->unlock();
-        }
-        return false;
 
-    }
 
-    public static function executeTask(Task $task)
-    {
-        $lock = new RedisLock($task->cc_task_key);
-        try {
-            if ($lock->repeatLock(TaskConst::TASK_LOCK_TIME, TaskConst::TASK_LOCK_COUNT)) {
-                if ($task->cc_task_status == TaskStatusEnum::TASK_STATUS_RUN) {
-                    ErrorEnum::throwException(ErrorEnum::TASK_IS_RUNNING);
-                }
 
-                if (\Yii::$app->queue->isWaiting($task->cc_task_queue_id)) {
-                    \Yii::$app->queue->remove($task->cc_task_queue_id);
-                    return self::process($task);
-                } else {
-                    ErrorEnum::throwException(ErrorEnum::TASK_IS_RUNNING);
-                }
-            } else {
-                ErrorEnum::throwException(ErrorEnum::TASK_ACTION_LOCK_FAILED);
-            }
-        } catch (\Exception $e) {
-            ErrorEnum::throwException($e->getCode());
-        } finally {
-            $lock->unlock();
-        }
-        return false;
-    }
 
-    public static function updateTask(Task $task, array $data)
-    {
-        $lock = new RedisLock($task->cc_task_key);
-        try {
-            if ($lock->repeatLock(TaskConst::TASK_LOCK_TIME, TaskConst::TASK_LOCK_COUNT)) {
-                if ($task->cc_task_status == TaskStatusEnum::TASK_STATUS_RUN) {
-                    ErrorEnum::throwException(ErrorEnum::TASK_IS_RUNNING);
-                }
 
-                if (\Yii::$app->queue->isWaiting($task->cc_task_queue_id)) {
-                    \Yii::$app->queue->remove($task->cc_task_queue_id);
-                    $task->load($data, '');
-                    $task->scenario = Task::SCENARIO_UPDATE;
-                    return $task->update();
-                } else {
-                    ErrorEnum::throwException(ErrorEnum::TASK_IS_RUNNING);
-                }
-            } else {
-                ErrorEnum::throwException(ErrorEnum::TASK_ACTION_LOCK_FAILED);
-            }
-        } catch (\Exception $e) {
-            ErrorEnum::throwException($e->getCode());
-        } finally {
-            $lock->unlock();
-        }
-        return false;
-    }
+
 
 
 }
