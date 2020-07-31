@@ -255,7 +255,8 @@ class TaskService
                 if (\Yii::$app->queue->isWaiting($task->cc_task_queue_id)) {
                     \Yii::$app->queue->remove($task->cc_task_queue_id);
                     $task->load($data, '');
-                    $task->scenario = Task::
+                    $task->scenario = Task::SCENARIO_UPDATE;
+                    return $task->update();
                 } else {
                     ErrorEnum::throwException(ErrorEnum::TASK_IS_RUNNING);
                 }
@@ -267,6 +268,7 @@ class TaskService
         } finally {
             $lock->unlock();
         }
+        return false;
     }
 
 
