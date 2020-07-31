@@ -1,6 +1,6 @@
 <?php
 
-namespace common\enums;
+namespace ccheng\task\common\enums;
 
 use ccheng\task\common\abstracts\Enum;
 

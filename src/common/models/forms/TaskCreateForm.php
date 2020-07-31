@@ -150,14 +150,15 @@ class TaskCreateForm extends Model
             }
             $transaction->commit();
 
-            return ResultHelpers::success();
+            return true;
 
         } catch (Exception $ex) {
 
             $transaction->rollBack();
 
-            return ResultHelpers::failed($ex->getCode());
+            throw $ex;
         }
+        return false;
     }
 
 

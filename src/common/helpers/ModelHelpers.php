@@ -1,0 +1,21 @@
+<?php
+namespace ccheng\task\common\helpers;
+
+class ModelHelper
+{
+    public static function getModelError($model)
+    {
+        /** @var ActiveRecord $model */
+        $errors = $model->getErrors();
+        if (!is_array($errors)) {
+            return true;
+        }
+        $firstError = array_shift($errors);
+        if (!is_array($firstError)) {
+            return true;
+        }
+
+        return array_shift($firstError);
+    }
+}
+?>
