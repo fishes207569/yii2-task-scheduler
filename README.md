@@ -1,6 +1,6 @@
-Event manager for Yii2
+Task Scheduler for Yii2
 =================
-Event manager By Biz
+Task Scheduler By Ccheng
 
 Installation
 ------------
@@ -16,7 +16,7 @@ php composer.phar require --prefer-dist ccheng/yii2-task-scheduler "*"
 or add
 
 ```
-"event-manager": "*"
+"ccheng/yii2-task-scheduler": "*"
 ```
 
 to the require section of your `composer.json` file.
@@ -37,9 +37,18 @@ yii migrate --migrationPath=@vendor/ccheng/yii2-task-scheduler/src/console/migra
 任务的处理依赖 yii2-queue 自行配置队列与job
 
 定时任务
+
+main.php 文件 controllerMap 中加入控制器映射
+```php
+	'task' => [
+		'class' => \ccheng\task\console\controllers\TaskQueueController::class,
+	],
+```
+
+加入定时任务 
 将执行时间一分钟以内的任务放入队列
 ```shell
-php yii task-queue/scheduler
+php yii task/scheduler
 ```
 
 添加事件管理模块
