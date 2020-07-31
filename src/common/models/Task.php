@@ -5,8 +5,9 @@ namespace ccheng\task\common\models;
 use ccheng\task\common\abstracts\TaskHandler;
 use ccheng\task\common\consts\TaskConst;
 use ccheng\task\common\enums\ErrorEnum;
+use ccheng\task\common\enums\StatusEnum;
 use ccheng\task\common\enums\SystemEnum;
-use common\enums\TaskStatusEnum;
+use ccheng\task\common\enums\TaskStatusEnum;
 use ccheng\task\common\interfaces\TaskHandlerInterface;
 
 use yii\behaviors\TimestampBehavior;
@@ -59,6 +60,7 @@ class Task extends ActiveRecord
         return [
             [['cc_task_type', 'cc_task_from_system', 'cc_task_key', 'cc_task_request_data', 'cc_task_priority'], 'required'],
             [['cc_task_retry_times', 'cc_task_id', 'cc_task_priority', 'cc_task_abort_time'], 'integer'],
+            ['cc_task_type', 'exist', 'targetClass' => \ccheng\task\common\models\TaskHandler::class, 'targetAttribute' => 'cc_task_handler_type'],
             [['cc_task_status', 'cc_task_next_run_time', 'cc_task_create_at'], 'string'],
             ['cc_task_from_system', 'in', 'range' => SystemEnum::getKeys()],
             [['cc_task_request_data', 'cc_task_response_data'], 'validateJson'],
@@ -151,7 +153,7 @@ class Task extends ActiveRecord
 
     public function getTaskHandler()
     {
-        return $this->hasOne(TaskHandler::class, ['cc_task_handler_type' => 'cc_task_type']);
+        return $this->hasOne(\ccheng\task\common\models\TaskHandler::class, ['cc_task_handler_type' => 'cc_task_type']);
     }
 
     public function getCurdLog()

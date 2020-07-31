@@ -3,6 +3,7 @@
 namespace ccheng\task\common\models\forms;
 
 use ccheng\task\common\consts\TaskConst;
+use ccheng\task\common\enums\StatusEnum;
 use ccheng\task\common\enums\SystemEnum;
 use ccheng\task\common\helpers\ResultHelpers;
 use ccheng\task\common\models\TaskHandler;
@@ -90,7 +91,7 @@ class TaskCreateForm extends Model
 
     public function checkType($attribute, $params)
     {
-        $taskHandler = TaskHandler::findOne(['cc_task_handler_type' => $this->type, 'cc_task_handler_status' => TaskStatusEnum::TASK_STATUS_OPEN]);
+        $taskHandler = TaskHandler::findOne(['cc_task_handler_type' => $this->type, 'cc_task_handler_status' => StatusEnum::STATUS_ENABLE]);
         if ($taskHandler) {
             $this->taskHandler = $taskHandler;
             return true;

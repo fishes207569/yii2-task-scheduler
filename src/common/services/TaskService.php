@@ -306,16 +306,9 @@ class TaskService
         ]);
         $query->andWhere(['>', 'cc_task_next_run_time', time() - 60]);
         $query->andWhere(['<', 'cc_task_abort_time', time()]);
-        $query->orderBy(['cc_task_priority' => SORT_DESC]);
+        $query->orderBy(['cc_task_next_run_time' => SORT_ASC, 'cc_task_priority' => SORT_DESC]);
         return $query;
     }
-
-
-
-
-
-
-
 
 
 }

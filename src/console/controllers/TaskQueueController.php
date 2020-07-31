@@ -27,7 +27,7 @@ class TaskQueueController extends Controller
             ]));
             $task->cc_task_queue_id = $message_id;
             if ($task->save()) {
-                Console::output('任务 queue_id:' . $message_id . ' 入队成功，待' . time() - $task->cc_task_next_run_time . '后执行');
+                Console::output('任务 task_id:' . $task->cc_task_id . ' 入队成功，待' . time() - $task->cc_task_next_run_time . '后执行');
             } else {
                 throw new \Exception(ModelHelper::getModelError($task));
             }
