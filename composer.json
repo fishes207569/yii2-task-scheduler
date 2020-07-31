@@ -12,19 +12,7 @@
     ],
     "require": {
         "yiisoft/yii2": "*",
-        "bower-asset/layer": "~3.1.1",
-        "almasaeed2010/adminlte": "^2.4.0",
-        "kartik-v/yii2-widget-select2": "@dev",
-        "kartik-v/yii2-widget-datepicker": "@dev",
-        "kartik-v/yii2-widget-datetimepicker": "*",
-        "kartik-v/yii2-widget-activeform": ">=1.5.7",
-        "kartik-v/yii2-field-range": "*",
-        "yiisoft/yii2-queue": "dev-master",
-        "rmrevin/yii2-fontawesome": "~2.9",
-        "kucha/ueditor": "^1.21",
-        "rogeecn/yii2-tag-editor": "^1.0",
-        "bower-asset/moment": "^2.24",
-        "philippfrenzel/yii2fullcalendar": "3.9.0"
+        "yiisoft/yii2-queue": "dev-master"
     },
     "autoload": {
         "psr-4": {
