@@ -74,7 +74,7 @@ class TaskCreateForm extends Model
             ['type', 'checkType'],
             ['priority', 'integer'],
             [['key'], 'string'],
-            [['run_time', 'abort_time'],],
+            [['run_time', 'abort_time'],'integer'],
             ['run_time', 'default', 'value' => function () {
 
                 return strtotime('+' . TaskConst::DEFAULT_RUN_SEC . ' sec');
