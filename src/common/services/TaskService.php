@@ -8,7 +8,7 @@ use ccheng\task\common\enums\ErrorEnum;
 use ccheng\task\common\helpers\RedisLock;
 use ccheng\task\common\models\Task;
 use ccheng\task\common\models\forms\TaskCreateForm;
-use common\enums\TaskStatusEnum;
+use ccheng\task\common\enums\TaskStatusEnum;
 use Exception;
 use \Yii;
 
@@ -196,7 +196,7 @@ class TaskService
                 $result = $taskHandler->process();
 
                 //3:处理成功
-                self::processResponse($result);
+                self::processResponse($task,$result);
             }
 
             $transaction->commit();
@@ -218,7 +218,7 @@ class TaskService
 
         $task->cc_task_retry_times += 1;
 
-        if (!$task->save()) {
+        if (!$task->save(false)) {
             ErrorEnum::throwException(ErrorEnum::TASK_UPDATE_FAILED);
         }
 
@@ -236,7 +236,7 @@ class TaskService
         }
     }
 
-    public static function processResponse(Task $task, $result = [])
+    public static function processResponse(Task $task, array $result)
     {
         //Code =2 ,任务处理中,还需要等待下次处理.
         if ($result['code'] == ErrorEnum::RESULT_CODE_FAILED) {
@@ -304,9 +304,10 @@ class TaskService
             ],
             'cc_task_queue_id' => 0
         ]);
-        $query->andWhere(['>', 'cc_task_next_run_time', time() - 60]);
-        $query->andWhere(['<', 'cc_task_abort_time', time()]);
+        $query->andWhere(['BETWEEN','cc_task_next_run_time', time() - 10, time() + 60]);
+        $query->andWhere(['>', 'cc_task_abort_time', time()]);
         $query->orderBy(['cc_task_next_run_time' => SORT_ASC, 'cc_task_priority' => SORT_DESC]);
+        echo $query->createCommand()->getRawSql();
         return $query;
     }
 

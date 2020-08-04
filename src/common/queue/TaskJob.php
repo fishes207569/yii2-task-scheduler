@@ -22,7 +22,7 @@ class TaskJob extends BaseObject implements \yii\queue\JobInterface
      */
     public function execute($queue)
     {
-        if ($task = Task::findOne($this->task_id)) {
+        if ($task = Task::findOne(['cc_task_id'=>$this->task_id])) {
             TaskService::process($task);
         }
 

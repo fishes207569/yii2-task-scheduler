@@ -14,7 +14,7 @@ class TaskConst
     const MAX_REDO_NUM = 5;
 
     //距离当前最短运行时间（秒）
-    const MIN_RUN_SEC = 60;
+    const MIN_RUN_SEC = 5;
 
     //任务默认推迟时间（秒）
     const DEFAULT_RUN_SEC = 60;

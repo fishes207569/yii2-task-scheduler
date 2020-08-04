@@ -81,7 +81,7 @@ class Task extends ActiveRecord
                 if ($this->$attribute < time()) {
                     $this->addError($attribute, ErrorEnum::getValue(ErrorEnum::TASK_EXEC_TIME_INVALID));
                 }
-                if ($this->$attribute - time() < TaskConst::MIN_RUN_SEC) {
+                if ($this->$attribute <= strtotime('+' . TaskConst::MIN_RUN_SEC . ' sec')) {
                     $this->addError($attribute, ErrorEnum::getValue(ErrorEnum::TASK_EXEC_TIME_ERROR));
                 }
                 return true;

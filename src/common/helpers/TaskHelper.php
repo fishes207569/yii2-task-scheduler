@@ -12,49 +12,6 @@ use Yii;
 
 class TaskHelper
 {
-    /**
-     * 处理Task
-     *
-     * @param Task $task
-     */
-    public static function processTask(Task $task)
-    {
-        //1:开始处理
-        try {
-            $task->startProcessing();
-        } catch (Exception $ex) {
-            Yii::error(sprintf("Task[%s]处理失败,异常信息: %s", $task->task_id, $ex->getMessage()), 'task');
-        }
-
-        $transaction = Yii::$app->db->beginTransaction();
-        try {
-            //1.1:根据Type获取Task Handler.
-            $taskHandler = self::getTaskHandler($task);
-            if (!isset($taskHandler)) {
-                throw new Exception(sprintf("[%s]不能找到对应的Handler", $task->task_type));
-            }
-
-            if ($taskHandler->isNeedSuspend($task)) {
-                $task->suspend();
-            } else {
-                //2:调用Handler 做业务处理
-                $result = $taskHandler->process($task);
-
-                //3:处理成功
-                $task->processSuccess($result);
-            }
-
-            $transaction->commit();
-        } catch (Exception $ex) {
-            $transaction->rollBack();
-            try {
-                //4:处理失败
-                $task->processFailed($ex);
-            } catch (Exception $ex) {
-                Yii::error(sprintf('[%s] Error: %s', Dh::getcurrentDateTime(), $ex->getMessage()), 'task');
-            }
-        }
-    }
 
     /**
      * 根据运行次数获取下次运行时间

@@ -61,7 +61,7 @@ class TaskCreateForm extends Model
      * 最后截止时间
      * @var int
      */
-    public $abort_time = 0;
+    public $abort_time;
 
     /** @var TaskHandler */
     protected $taskHandler;
@@ -105,7 +105,7 @@ class TaskCreateForm extends Model
     {
 
         if ($this->$attribute) {
-            if (strtotime($this->$attribute) <= strtotime('+' . TaskConst::MIN_RUN_SEC . ' sec')) {
+            if ($this->$attribute <= strtotime('+' . TaskConst::MIN_RUN_SEC . ' sec')) {
                 return $this->addError($attribute, ErrorEnum::getValue(ErrorEnum::TASK_EXEC_TIME_INVALID));
             }
         }
@@ -115,8 +115,10 @@ class TaskCreateForm extends Model
 
     public function validateAbortTime($attribute, $params)
     {
-        if (strtotime($this->run_time) <= strtotime('+1 min', $this->$attribute)) {
-            return $this->addError($attribute, ErrorEnum::getValue(ErrorEnum::TASK_UNDEFINED_OR_DISABLED));
+        if ($this->$attribute) {
+            if ($this->$attribute < strtotime('+'.TaskConst::MIN_ABORT_SEC.' sec', $this->run_time)) {
+                return $this->addError($attribute, ErrorEnum::getValue(ErrorEnum::TASK_EXEC_TIME_ERROR));
+            }
         }
         return true;
     }
