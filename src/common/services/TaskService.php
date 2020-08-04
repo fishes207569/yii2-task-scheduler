@@ -171,7 +171,7 @@ class TaskService
 
     public static function findTaskByKey($key)
     {
-        return Task::findAll(['cc_task_key' => $key]);
+        return Task::findOne(['cc_task_key' => $key]);
     }
 
 

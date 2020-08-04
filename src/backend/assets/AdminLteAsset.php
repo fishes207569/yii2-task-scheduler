@@ -12,18 +12,16 @@ use yii\web\AssetBundle;
 class AdminLteAsset extends AssetBundle
 {
     public $sourcePath = '@vendor/almasaeed2010/adminlte/dist';
-    public $css        = [
-        'css/AdminLTE.min.css',
-        'css/skins/skin-blue.min.css',
+    public $css = [
+        'css/adminlte.css',
     ];
-    public $js         = [
+    public $js = [
         'js/adminlte.min.js',
     ];
-    public $depends    = [
-        'rmrevin\yii\fontawesome\AssetBundle',
+    public $depends = [
+        JqueryAsset::class,
         'yii\web\YiiAsset',
-        'yii\bootstrap\BootstrapAsset',
-        'yii\bootstrap\BootstrapPluginAsset',
+        BootstrapAsset::class
     ];
 
     /**

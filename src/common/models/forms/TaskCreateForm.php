@@ -9,7 +9,7 @@ use ccheng\task\common\helpers\ResultHelpers;
 use ccheng\task\common\models\TaskHandler;
 use ccheng\task\common\traits\ValidateTrait;
 use ccheng\task\common\enums\ErrorEnum;
-use common\enums\TaskStatusEnum;
+use ccheng\task\common\enums\TaskStatusEnum;
 use Exception;
 use yii\base\Model;
 use ccheng\task\common\services\TaskService;
@@ -69,17 +69,18 @@ class TaskCreateForm extends Model
     public function rules()
     {
         return [
-            ['type', 'key', 'required'],
+            [['type', 'key'], 'required'],
             ['request_data', 'validateJson'],
             ['type', 'checkType'],
             ['priority', 'integer'],
             [['key'], 'string'],
+            [['run_time', 'abort_time'],],
             ['run_time', 'default', 'value' => function () {
 
                 return strtotime('+' . TaskConst::DEFAULT_RUN_SEC . ' sec');
 
             }],
-            ['run_time', 'default', 'value' => function () {
+            ['abort_time', 'default', 'value' => function () {
 
                 return strtotime('+' . TaskConst::MIN_ABORT_SEC . ' sec', $this->run_time);
 
@@ -104,10 +105,7 @@ class TaskCreateForm extends Model
     {
 
         if ($this->$attribute) {
-            if (date('Y-m-d H:i:s', strtotime($this->$attribute)) != $this->$attribute) {
-                return $this->addError($attribute, ErrorEnum::getValue(ErrorEnum::TASK_TIME_ERROR));
-            }
-            if (strtotime($this->$attribute) <= strtotime('+5 sec')) {
+            if (strtotime($this->$attribute) <= strtotime('+' . TaskConst::MIN_RUN_SEC . ' sec')) {
                 return $this->addError($attribute, ErrorEnum::getValue(ErrorEnum::TASK_EXEC_TIME_INVALID));
             }
         }

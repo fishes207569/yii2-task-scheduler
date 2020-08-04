@@ -2,7 +2,7 @@
 
 use yii\db\Migration;
 
-class m200727094709cc_task extends Migration
+class m200727_094709_cc_task extends Migration
 {
     public function up()
     {

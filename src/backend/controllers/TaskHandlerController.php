@@ -14,6 +14,7 @@ use yii\filters\VerbFilter;
  */
 class TaskHandlerController extends Controller
 {
+    public $layout='mini';
     /**
      * {@inheritdoc}
      */

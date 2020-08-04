@@ -59,9 +59,16 @@ class Task extends ActiveRecord
     {
         return [
             [['cc_task_type', 'cc_task_from_system', 'cc_task_key', 'cc_task_request_data', 'cc_task_priority'], 'required'],
-            [['cc_task_retry_times', 'cc_task_id', 'cc_task_priority', 'cc_task_abort_time'], 'integer'],
+            [['cc_task_retry_times', 'cc_task_id', 'cc_task_priority'], 'integer'],
             ['cc_task_type', 'exist', 'targetClass' => \ccheng\task\common\models\TaskHandler::class, 'targetAttribute' => 'cc_task_handler_type'],
-            [['cc_task_status', 'cc_task_next_run_time', 'cc_task_create_at'], 'string'],
+            [['cc_task_status'], 'string'],
+            [['cc_task_next_run_time', 'cc_task_abort_time'], 'filter', 'filter' => function ($value) {
+                if (is_numeric($value)) {
+                    return $value;
+                } else {
+                    return strtotime($value);
+                }
+            }],
             ['cc_task_from_system', 'in', 'range' => SystemEnum::getKeys()],
             [['cc_task_request_data', 'cc_task_response_data'], 'validateJson'],
             ['cc_task_status', 'in', 'range' => TaskStatusEnum::getKeys()],
@@ -100,7 +107,7 @@ class Task extends ActiveRecord
 
             [['cc_task_execute_log', 'requestData', 'cc_task_is_sync'], 'safe'],
             ['cc_task_key', 'unique'],
-            [['cc_task_type', 'cc_task_key', 'cc_task_from_system', 'cc_task_next_run_time',], 'string', 'max' => 50],];
+            [['cc_task_type', 'cc_task_key', 'cc_task_from_system'], 'string', 'max' => 50],];
     }
 
     /**
