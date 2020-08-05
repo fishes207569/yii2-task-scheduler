@@ -2,6 +2,9 @@
 
 namespace ccheng\task\backend\controllers;
 
+use ccheng\task\common\enums\SystemEnum;
+use ccheng\task\common\enums\TaskStatusEnum;
+use ccheng\task\common\services\TaskService;
 use Yii;
 use ccheng\task\common\models\Task;
 use yii\data\ActiveDataProvider;
@@ -14,8 +17,8 @@ use yii\filters\VerbFilter;
  */
 class TaskController extends Controller
 {
-    public $layout='mini';
-    
+    public $layout = 'mini';
+
     /**
      * {@inheritdoc}
      */
@@ -56,6 +59,7 @@ class TaskController extends Controller
     {
         return $this->render('view', [
             'model' => $this->findModel($id),
+            'taskTypeMap' => TaskService::getTaskTypeMap()
         ]);
     }
 
@@ -71,9 +75,12 @@ class TaskController extends Controller
         if ($model->load(Yii::$app->request->post()) && $model->save()) {
             return $this->redirect(['view', 'id' => $model->cc_task_id]);
         }
-
+        !$model->cc_task_from_system && $model->cc_task_from_system = SystemEnum::SYSTEM_VIAUDIO;
+        !$model->cc_task_status && $model->cc_task_status = TaskStatusEnum::TASK_STATUS_OPEN;
+        !$model->cc_task_next_run_time && $model->cc_task_next_run_time = date('Y-m-d H:i:s', strtotime('+5 min'));
         return $this->render('create', [
             'model' => $model,
+            'taskTypeMap' => TaskService::getTaskTypeMap()
         ]);
     }
 
@@ -86,14 +93,16 @@ class TaskController extends Controller
      */
     public function actionUpdate($id)
     {
+        $a=\Yii::$app->request->referrer;
         $model = $this->findModel($id);
 
         if ($model->load(Yii::$app->request->post()) && $model->save()) {
             return $this->redirect(['view', 'id' => $model->cc_task_id]);
         }
-
+        !$model->cc_task_status && $model->cc_task_status = TaskStatusEnum::TASK_STATUS_OPEN;
         return $this->render('update', [
             'model' => $model,
+            'taskTypeMap' => TaskService::getTaskTypeMap()
         ]);
     }
 

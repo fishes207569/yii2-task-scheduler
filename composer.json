@@ -19,7 +19,8 @@
         "kartik-v/yii2-widget-datetimepicker": "*",
         "kartik-v/yii2-widget-activeform": ">=1.5.7",
         "kartik-v/yii2-field-range": "*",
-        "rmrevin/yii2-fontawesome": "~2.9"
+        "rmrevin/yii2-fontawesome": "~2.9",
+        "kdn/yii2-json-editor": "*"
     },
     "autoload": {
         "psr-4": {

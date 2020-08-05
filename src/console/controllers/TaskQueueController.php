@@ -36,7 +36,7 @@ class TaskQueueController extends Controller
                 Console::output($this->time . ' 捞取任务 ' . $tasks->count() . ' 条');
                 foreach ($tasks->each() as $task) {
                     /** @var Task $task */
-                    $delay = time() - $task->cc_task_next_run_time;
+                    $delay = $task->cc_task_next_run_time - time();
                     $delay = $delay > 0 ? $delay : 1;
                     $message_id = \Yii::$app->queue->delay($delay)->push(new TaskJob([
                         'task_id' => $task->cc_task_id,

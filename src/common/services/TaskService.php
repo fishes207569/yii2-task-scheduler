@@ -9,6 +9,7 @@ use ccheng\task\common\helpers\RedisLock;
 use ccheng\task\common\models\Task;
 use ccheng\task\common\models\forms\TaskCreateForm;
 use ccheng\task\common\enums\TaskStatusEnum;
+use ccheng\task\common\models\TaskHandler;
 use Exception;
 use \Yii;
 
@@ -323,5 +324,12 @@ class TaskService
         return $query;
     }
 
+    public static function getTaskTypeMap()
+    {
+        $query = TaskHandler::find();
+        $query->select(['cc_task_handler_desc', 'cc_task_handler_type']);
+        $query->indexBy('cc_task_handler_type');
+        return $query->column();
+    }
 
 }

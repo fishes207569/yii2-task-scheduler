@@ -36,13 +36,22 @@ class TaskHandler extends \yii\db\ActiveRecord
     {
         return [
             [['cc_task_handler_type', 'cc_task_handler_class'], 'required'],
+            ['cc_task_handler_class', 'checkClass'],
             [['cc_task_handler_count'], 'integer'],
             [['cc_task_handler_create_at', 'cc_task_handler_update_at'], 'safe'],
             [['cc_task_handler_type'], 'string', 'max' => 64],
-            [['cc_task_handler_class','cc_task_handler_desc'], 'string', 'max' => 255],
+            [['cc_task_handler_class', 'cc_task_handler_desc'], 'string', 'max' => 255],
             [['cc_task_handler_from_system', 'cc_task_handler_status'], 'string', 'max' => 16],
             [['cc_task_handler_type'], 'unique'],
         ];
+    }
+
+    public function checkClass($attribute, $params)
+    {
+        if (!class_exists($this->$attribute)) {
+            $this->addError($attribute, '处理器实现类不存在');
+        }
+        return true;
     }
 
     /**
@@ -51,7 +60,7 @@ class TaskHandler extends \yii\db\ActiveRecord
     public function attributeLabels()
     {
         return [
-            'cc_task_handler_id' => 'Cc Task Handler ID',
+            'cc_task_handler_id' => 'ID',
             'cc_task_handler_type' => '类型',
             'cc_task_handler_class' => '实现类',
             'cc_task_handler_desc' => '任务描述',
@@ -72,8 +81,8 @@ class TaskHandler extends \yii\db\ActiveRecord
             [
                 'class' => TimestampBehavior::class,
                 'attributes' => [
-                    ActiveRecord::EVENT_BEFORE_INSERT => ['cc_task_create_at', 'cc_task_update_at'],
-                    ActiveRecord::EVENT_BEFORE_UPDATE => ['cc_task_update_at']
+                    ActiveRecord::EVENT_BEFORE_INSERT => ['cc_task_handler_create_at', 'cc_task_handler_update_at'],
+                    ActiveRecord::EVENT_BEFORE_UPDATE => ['cc_task_handler_update_at']
                 ],
             ]
         ];

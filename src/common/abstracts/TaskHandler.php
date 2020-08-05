@@ -37,7 +37,7 @@ abstract class TaskHandler implements TaskHandlerInterface
 
     public function isNeedRedo(): bool
     {
-        if ($this->task->cc_task_retry_times < TaskConst::MAX_REDO_NUM && $this->task->cc_task_abort_time >= time()) {
+        if ($this->task->cc_task_retry_times <= TaskConst::MAX_REDO_NUM && $this->task->cc_task_abort_time >= time()) {
             return true;
         }
         return false;

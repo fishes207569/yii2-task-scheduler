@@ -131,6 +131,8 @@ class Task extends ActiveRecord
             'cc_task_create_at' => '创建日期',
             'cc_task_update_at' => '最后更新日期',
             'cc_task_priority' => '任务优先级',
+            'cc_task_queue_id' => '队列任务ID',
+            'cc_task_suspend_times' => '挂起次数',
             'cc_task_abort_time' => '任务处理截止时间',
         ];
     }

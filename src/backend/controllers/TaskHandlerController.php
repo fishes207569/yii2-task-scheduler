@@ -2,6 +2,8 @@
 
 namespace ccheng\task\backend\controllers;
 
+use ccheng\task\common\enums\StatusEnum;
+use ccheng\task\common\enums\SystemEnum;
 use Yii;
 use ccheng\task\common\models\TaskHandler;
 use yii\data\ActiveDataProvider;
@@ -14,7 +16,8 @@ use yii\filters\VerbFilter;
  */
 class TaskHandlerController extends Controller
 {
-    public $layout='mini';
+    public $layout = 'mini';
+
     /**
      * {@inheritdoc}
      */
@@ -70,7 +73,8 @@ class TaskHandlerController extends Controller
         if ($model->load(Yii::$app->request->post()) && $model->save()) {
             return $this->redirect(['view', 'id' => $model->cc_task_handler_id]);
         }
-
+        !$model->cc_task_handler_from_system && $model->cc_task_handler_from_system = SystemEnum::SYSTEM_VIAUDIO;
+        is_null($model->cc_task_handler_status) && $model->cc_task_handler_status = StatusEnum::STATUS_ENABLE;
         return $this->render('create', [
             'model' => $model,
         ]);
@@ -88,8 +92,10 @@ class TaskHandlerController extends Controller
         $model = $this->findModel($id);
 
         if ($model->load(Yii::$app->request->post()) && $model->save()) {
-            return $this->redirect(['view', 'id' => $model->cc_task_handler_id]);
+            return $this->redirect(['index', 'id' => $model->cc_task_handler_id]);
         }
+        !$model->cc_task_handler_from_system && $model->cc_task_handler_from_system = SystemEnum::SYSTEM_VIAUDIO;
+        is_null($model->cc_task_handler_status) && $model->cc_task_handler_status = StatusEnum::STATUS_ENABLE;
 
         return $this->render('update', [
             'model' => $model,
