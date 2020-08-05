@@ -73,8 +73,10 @@ class TaskCreateForm extends Model
             ['request_data', 'validateJson'],
             ['type', 'checkType'],
             ['priority', 'integer'],
+            ['type', 'exist', 'targetClass' => TaskHandler::class, 'targetAttribute' => 'cc_task_handler_type'],
+            ['form_source', 'in', 'range' => SystemEnum::getKeys()],
             [['key'], 'string'],
-            [['run_time', 'abort_time'],'integer'],
+            [['run_time', 'abort_time'], 'integer'],
             ['run_time', 'default', 'value' => function () {
 
                 return strtotime('+' . TaskConst::DEFAULT_RUN_SEC . ' sec');
@@ -116,7 +118,7 @@ class TaskCreateForm extends Model
     public function validateAbortTime($attribute, $params)
     {
         if ($this->$attribute) {
-            if ($this->$attribute < strtotime('+'.TaskConst::MIN_ABORT_SEC.' sec', $this->run_time)) {
+            if ($this->$attribute < strtotime('+' . TaskConst::MIN_ABORT_SEC . ' sec', $this->run_time)) {
                 return $this->addError($attribute, ErrorEnum::getValue(ErrorEnum::TASK_EXEC_TIME_ERROR));
             }
         }

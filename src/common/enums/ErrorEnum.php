@@ -36,7 +36,7 @@ class ErrorEnum extends Enum
             self::RESULT_CODE_FAILED => '失败',
             self::ERROR_CODE_SYSTEM_ERROR => '系统错误',
             self::TASK_UNDEFINED_OR_DISABLED => '任务处理器未定义或启用',
-            self::TASK_EXEC_TIME_INVALID => '任务执行时间已过期或必须过短',
+            self::TASK_EXEC_TIME_INVALID => '任务执行时间已过期或间隔过短',
             self::TASK_IS_MULTIPLE => '任务不具备唯一性，无法修改',
             self::TASK_IS_CLOSED => '任务已关闭',
             self::TASK_NOT_EXISTS => '任务不存在',
