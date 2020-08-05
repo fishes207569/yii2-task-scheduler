@@ -302,6 +302,10 @@ class TaskService
         }
     }
 
+    /**
+     * 捞取过期10秒至一分钟内且未过期待入队的任务
+     * @return \yii\db\ActiveQuery
+     */
     public static function getWaitAsyncTaskQuery()
     {
         $query = Task::find();
