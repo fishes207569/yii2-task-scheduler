@@ -47,8 +47,8 @@ class m200727_094709_cc_task extends Migration
           `cc_task_crud_log_old_value` text COMMENT '旧值',
           `cc_task_crud_log_new_value` text COMMENT '新值',
           `cc_task_crud_log_operator` int(11) DEFAULT NULL COMMENT '操作人员',
-          `cc_task_crud_log_create_at` datetime NOT NULL DEFAULT '1000-01-01 00:00:00' COMMENT '创建时间',
-          `cc_task_crud_log_update_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+          `cc_task_crud_log_create_at` int(11) NOT NULL DEFAULT '0' COMMENT '创建时间',
+          `cc_task_crud_log_update_at` int(11) NOT NULL DEFAULT '0' COMMENT '更新时间',
           PRIMARY KEY (`cc_task_crud_log_id`),
           KEY `idx_task_type_id` (`cc_task_crud_log_task_id`,`cc_task_crud_log_type`) USING BTREE
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='任务变更日志表';

@@ -153,6 +153,7 @@ class TaskService
             return $task;
         }
         if ($task->validate()) {
+            var_dump($task->cc_task_request_data);
             if ($task->save()) {
                 return $task;
             }
@@ -196,7 +197,7 @@ class TaskService
                 $result = $taskHandler->process();
 
                 //3:处理成功
-                self::processResponse($task,$result);
+                self::processResponse($task, $result);
             }
 
             $transaction->commit();
@@ -242,11 +243,12 @@ class TaskService
         if ($result['code'] == ErrorEnum::RESULT_CODE_FAILED) {
             if ($task->handler->isNeedRedo()) {
                 $task->cc_task_status = TaskStatusEnum::TASK_STATUS_OPEN;
+                $task->cc_task_retry_times += 1;
             } else {
                 $task->cc_task_status = TaskStatusEnum::TASK_STATUS_TERMINATED;
             }
             $task->cc_task_queue_id = 0;
-            $task->cc_task_next_run_time = self::getNextRunDate($task->cc_task_retry_times);
+            $task->cc_task_next_run_time = self::getNextRunDate($task);
         } else {
 
             $task->cc_task_response_data = json_encode($result, JSON_UNESCAPED_UNICODE);
@@ -264,6 +266,7 @@ class TaskService
         $task->refresh();
         if ($task->handler->isNeedRedo()) {
             $task->cc_task_status = TaskStatusEnum::TASK_STATUS_ERROR;
+            $task->cc_task_retry_times += 1;
         } else {
             $task->cc_task_status = TaskStatusEnum::TASK_STATUS_TERMINATED;
         }
@@ -271,27 +274,32 @@ class TaskService
         $task->cc_task_execute_log = sprintf("====%s====", $task->cc_task_retry_times)
             . $ex->getMessage() . $ex->getTraceAsString();
 
-        $task->cc_task_next_run_time = self::getNextRunDate($task->cc_task_retry_times);
+        $task->cc_task_next_run_time = self::getNextRunDate($task);
 
         if (!$task->save()) {
             throw new Exception(json_encode($task->getErrors(), JSON_UNESCAPED_UNICODE));
         }
     }
 
-    public static function getNextRunDate($retryTimes)
+    public static function getNextRunDate(Task $task)
     {
+        $retryTimes = $task->cc_task_retry_times;
+        $time = time();
         switch ($retryTimes) {
             case 1:
-                return DateHelpers::getcurrentDateTime(5);
+                $retry_time = $time + 5 * 60;
             case 2:
-                return DateHelpers::getcurrentDateTime(30);
+                $retry_time = $time + 10 * 60;
             case 3:
-                return DateHelpers::getcurrentDateTime(60);
+                $retry_time = $time + 15 * 60;
             case 4:
-                return DateHelpers::getcurrentDateTime(120);
+                $retry_time = $time + 20 * 60;
         }
-
-        return DateHelpers::getcurrentDateTime(60 * 24 * 365 * 10);
+        if ($task->cc_task_abort_time >= $retry_time) {
+            return $retry_time;
+        } else if ($task->cc_task_abort_time >= $time) {
+            return $time;
+        }
     }
 
     public static function getWaitAsyncTaskQuery()
@@ -304,10 +312,10 @@ class TaskService
             ],
             'cc_task_queue_id' => 0
         ]);
-        $query->andWhere(['BETWEEN','cc_task_next_run_time', time() - 10, time() + 60]);
-        $query->andWhere(['>', 'cc_task_abort_time', time()]);
+        $time = time();
+        $query->andWhere(['BETWEEN', 'cc_task_next_run_time', $time - 10, $time + 60]);
+        $query->andWhere(['>', 'cc_task_abort_time', $time]);
         $query->orderBy(['cc_task_next_run_time' => SORT_ASC, 'cc_task_priority' => SORT_DESC]);
-        echo $query->createCommand()->getRawSql();
         return $query;
     }
 

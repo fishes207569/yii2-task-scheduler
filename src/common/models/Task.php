@@ -3,6 +3,7 @@
 namespace ccheng\task\common\models;
 
 use ccheng\task\common\abstracts\TaskHandler;
+use ccheng\task\common\behaviors\TaskBehavior;
 use ccheng\task\common\consts\TaskConst;
 use ccheng\task\common\enums\ErrorEnum;
 use ccheng\task\common\enums\StatusEnum;
@@ -71,6 +72,7 @@ class Task extends ActiveRecord
             }],
             ['cc_task_from_system', 'in', 'range' => SystemEnum::getKeys()],
             [['cc_task_request_data', 'cc_task_response_data'], 'validateJson'],
+            [['cc_task_request_data', 'cc_task_response_data'], 'default', 'value' => '{}'],
             ['cc_task_status', 'in', 'range' => TaskStatusEnum::getKeys()],
             ['cc_task_next_run_time', 'default', 'value' => function () {
                 return time() + TaskConst::DEFAULT_RUN_SEC;
@@ -145,7 +147,8 @@ class Task extends ActiveRecord
                     ActiveRecord::EVENT_BEFORE_INSERT => ['cc_task_create_at', 'cc_task_update_at'],
                     ActiveRecord::EVENT_BEFORE_UPDATE => ['cc_task_update_at']
                 ]
-            ]
+            ],
+            ["class" => TaskBehavior::class]
         ];
     }
 
