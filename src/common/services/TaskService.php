@@ -210,6 +210,7 @@ class TaskService
                 self::processFailed($ex, $task);
             } catch (Exception $ex) {
                 Yii::error(sprintf('[%s] Error: %s', DateHelpers::getcurrentDateTime(), $ex->getMessage()), 'task');
+                throw $ex;
             }
         }
     }
@@ -284,9 +285,9 @@ class TaskService
 
     public static function getNextRunDate(Task $task)
     {
-        $retryTimes = $task->cc_task_retry_times;
+        $retry_time = $task->cc_task_retry_times;
         $time = time();
-        switch ($retryTimes) {
+        switch ($retry_time) {
             case 1:
                 $retry_time = $time + 5 * 60;
             case 2:

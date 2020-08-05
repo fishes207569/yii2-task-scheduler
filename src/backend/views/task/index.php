@@ -2,6 +2,7 @@
 
 use yii\helpers\Html;
 use yii\grid\GridView;
+use ccheng\task\common\enums\TaskStatusEnum;
 
 /* @var $this yii\web\View */
 /* @var $dataProvider yii\data\ActiveDataProvider */
@@ -32,13 +33,7 @@ $this->params['breadcrumbs'][] = $this->title;
 //                        'cc_task_request_data',
                         //'cc_task_response_data',
                         //'cc_task_execute_log:ntext',
-                        [
-                            'attribute' => 'cc_task_status',
-                            'format' => 'raw',
-                            'value' => function ($model) {
-                                return \ccheng\task\common\enums\TaskStatusEnum::getValue($model->cc_task_status);
-                            }
-                        ],
+
                         'cc_task_next_run_time:datetime',
                         'cc_task_abort_time:datetime',
                         'cc_task_create_at:datetime',
@@ -47,17 +42,32 @@ $this->params['breadcrumbs'][] = $this->title;
                         'cc_task_priority',
                         //'cc_task_queue_id',
                         [
+                            'attribute' => 'cc_task_status',
+                            'format' => 'raw',
+                            'value' => function ($model) {
+                                return TaskStatusEnum::getValue($model->cc_task_status);
+                            }
+                        ],
+                        [
                             'class' => 'yii\grid\ActionColumn',
                             'header' => '操作',
-                            'template' => '{view} {update}',
+                            'template' => '{view} {update} {exec}',
                             'buttons' => [
                                 'view' => function ($url, $model, $key) {
                                     return Html::a('详情', $url, ['class' => 'btn btn-default btn-sm']);
                                 },
                                 'update' => function ($url, $model, $key) {
                                     return Html::a('编辑', $url, ['class' => 'btn btn-primary btn-sm']);
+                                },
+                                'exec' => function ($url, $model, $key) {
+                                    return Html::a('执行', $url, ['class' => 'btn btn-warning btn-sm']);
                                 }
-                            ]
+                            ],
+                            'visibleButtons' => [
+                                'exec' => function ($model) {
+                                    return in_array($model->cc_task_status, [TaskStatusEnum::TASK_STATUS_OPEN, TaskStatusEnum::TASK_STATUS_ERROR]);
+                                },
+                            ],
                         ],
                     ],
                 ]); ?>

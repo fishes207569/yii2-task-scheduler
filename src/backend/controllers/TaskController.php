@@ -43,7 +43,6 @@ class TaskController extends Controller
         $dataProvider = new ActiveDataProvider([
             'query' => Task::find(),
         ]);
-
         return $this->render('index', [
             'dataProvider' => $dataProvider,
         ]);
@@ -93,7 +92,7 @@ class TaskController extends Controller
      */
     public function actionUpdate($id)
     {
-        $a=\Yii::$app->request->referrer;
+        $a = \Yii::$app->request->referrer;
         $model = $this->findModel($id);
 
         if ($model->load(Yii::$app->request->post()) && $model->save()) {
@@ -117,6 +116,28 @@ class TaskController extends Controller
     {
         $this->findModel($id)->delete();
 
+
+        return $this->redirect(['index']);
+    }
+
+    public function actionExec($id)
+    {
+        try {
+            $res = false;
+            if ($task = $this->findModel($id)) {
+                if ($task->cc_task_status == TaskStatusEnum::TASK_STATUS_OPEN) {
+                    TaskService::process($task);
+                    $res = true;
+                }
+            }
+            if ($res) {
+                \Yii::$app->session->setFlash('success', '执行成功');
+            } else {
+                \Yii::$app->session->setFlash('error', '执行失败');
+            }
+        } catch (\Exception $e) {
+            \Yii::$app->session->setFlash('error', '执行失败:' . $e->getMessage());
+        }
         return $this->redirect(['index']);
     }
 
