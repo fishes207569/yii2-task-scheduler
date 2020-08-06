@@ -42,6 +42,11 @@ class TaskSearch extends Model
 
         $dataProvider = new ActiveDataProvider([
             'query' => $query,
+            'sort' => [
+                'defaultOrder' => [
+                    'cc_task_next_run_time' => SORT_DESC,
+                ]
+            ]
         ]);
 
         $this->load($params);

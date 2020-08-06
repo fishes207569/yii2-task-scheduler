@@ -39,7 +39,7 @@ use yii\widgets\ActiveForm;
     <?= $form->field($model, 'cc_task_request_data')->widget(
         \kdn\yii2\JsonEditor::class,
         [
-            'clientOptions' => ['modes' => ['code','tree'],'mode'=>'code'],
+            'clientOptions' => ['modes' => ['code', 'tree'], 'mode' => 'code'],
 
         ]
     ); ?>
@@ -55,6 +55,9 @@ use yii\widgets\ActiveForm;
     ]) ?>
     <?= $form->field($model, 'cc_task_next_run_time')->widget(kartik\datetime\DateTimePicker::class, [
         'language' => 'zh-CN',
+        'options' => [
+            'value' => $model->isNewRecord ? date('Y-m-d H:i:s', strtotime('+5 min')) : date('Y-m-d H:i:s', $model->cc_task_next_run_time),
+        ],
         'pluginOptions' => [
             'format' => 'yyyy-mm-dd hh:ii',
             'todayHighlight' => true, // 今日高亮
@@ -65,7 +68,7 @@ use yii\widgets\ActiveForm;
     <?= $form->field($model, 'cc_task_abort_time')->widget(kartik\datetime\DateTimePicker::class, [
         'language' => 'zh-CN',
         'options' => [
-            'value' => $model->isNewRecord ? date('Y-m-d H:i:s') : date('Y-m-d H:i:s', $model->cc_task_abort_time),
+            'value' => $model->isNewRecord ? date('Y-m-d H:i:s', strtotime('+6 min')) : date('Y-m-d H:i:s', $model->cc_task_abort_time),
         ],
         'pluginOptions' => [
             'format' => 'yyyy-mm-dd hh:ii',
