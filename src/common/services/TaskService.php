@@ -10,6 +10,7 @@ use ccheng\task\common\models\Task;
 use ccheng\task\common\models\forms\TaskCreateForm;
 use ccheng\task\common\enums\TaskStatusEnum;
 use ccheng\task\common\models\TaskHandler;
+use ccheng\task\common\queue\TaskJob;
 use Exception;
 use \Yii;
 
@@ -331,6 +332,21 @@ class TaskService
         $query->select(['cc_task_handler_desc', 'cc_task_handler_type']);
         $query->indexBy('cc_task_handler_type');
         return $query->column();
+    }
+
+    public static function addToQueue(Task $task)
+    {
+        $delay = $task->cc_task_next_run_time - time();
+        if ($delay > 0) {
+            $message_id = \Yii::$app->queue->delay($delay)->push(new TaskJob([
+                'task_id' => $task->cc_task_id,
+            ]));
+        } else {
+            $message_id = \Yii::$app->queue->push(new TaskJob([
+                'task_id' => $task->cc_task_id,
+            ]));
+        }
+        return $message_id;
     }
 
 }

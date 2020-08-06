@@ -2,6 +2,7 @@
 
 namespace ccheng\task\backend\controllers;
 
+use ccheng\task\backend\models\forms\TaskSearch;
 use ccheng\task\common\enums\SystemEnum;
 use ccheng\task\common\enums\TaskStatusEnum;
 use ccheng\task\common\services\TaskService;
@@ -40,11 +41,24 @@ class TaskController extends Controller
      */
     public function actionIndex()
     {
-        $dataProvider = new ActiveDataProvider([
-            'query' => Task::find(),
-        ]);
+        $searchModel = new TaskSearch();
+        $queryParams = \Yii::$app->request->queryParams;
+        if (empty($queryParams['TaskSearch']['start_time']) && empty($queryParams['TaskSearch']['end_time'])) {
+            if (empty($queryParams['TaskSearch']['start_time'])) {
+                $queryParams['TaskSearch']['start_time'] = date('Y-m-d') . ' 00:00:00';
+            }
+            if (empty($queryParams['TaskSearch']['end_time'])) {
+                $queryParams['TaskSearch']['end_time'] = date('Y-m-d') . ' 23:59:59';
+            }
+        }
+
+        $dataProvider = $searchModel->search($queryParams);
         return $this->render('index', [
             'dataProvider' => $dataProvider,
+            'formSystemMap' => SystemEnum::getMap(),
+            'taskTypeMap' => TaskService::getTaskTypeMap(),
+            'taskStatusMap' => TaskStatusEnum::getMap(),
+            'searchModel' => $searchModel,
         ]);
     }
 
@@ -126,7 +140,14 @@ class TaskController extends Controller
             $res = false;
             if ($task = $this->findModel($id)) {
                 if ($task->cc_task_status == TaskStatusEnum::TASK_STATUS_OPEN) {
-                    TaskService::process($task);
+                    if($task->cc_task_queue_id){
+                        if (\Yii::$app->queue->isWaiting($task->cc_task_queue_id)) {
+                            \Yii::$app->queue->remove($task->cc_task_queue_id);
+                            return TaskService::process($task);
+                        }
+                    }else{
+                        TaskService::process($task);
+                    }
                     $res = true;
                 }
             }
@@ -138,7 +159,24 @@ class TaskController extends Controller
         } catch (\Exception $e) {
             \Yii::$app->session->setFlash('error', '执行失败:' . $e->getMessage());
         }
-        return $this->redirect(['index']);
+        return $this->redirect(\Yii::$app->request->referrer);
+    }
+
+    public function actionAdd($id)
+    {
+        $task = $this->findModel($id);
+        if (!$task->cc_task_queue_id) {
+            $message_id = TaskService::addToQueue($task);
+            $delay = $task->cc_task_next_run_time >= time() ? $task->cc_task_next_run_time - time() : 1;
+            $task->cc_task_queue_id = $message_id;
+            if ($task->save()) {
+                \Yii::$app->session->setFlash('success', '加入队列成功，将在' . $delay . ' 秒后执行');
+            }
+        } else {
+            \Yii::$app->session->setFlash('error', '任务已加入队列，请刷新后查看');
+        }
+        return $this->redirect(\Yii::$app->request->referrer);
+
     }
 
     /**

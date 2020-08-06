@@ -118,22 +118,22 @@ class Task extends ActiveRecord
     public function attributeLabels()
     {
         return [
-            'cc_task_id' => '任务编号',
+            'cc_task_id' => 'ID',
             'cc_task_type' => '任务类型',
             'cc_task_key' => '任务键值',
             'cc_task_from_system' => '任务来源',
             'cc_task_request_data' => '任务内容',
             'cc_task_response_data' => '任务结果',
             'cc_task_execute_log' => '备注内容',
-            'cc_task_status' => '任务状态',
-            'cc_task_next_run_time' => '下次运行时间',
+            'cc_task_status' => '状态',
+            'cc_task_next_run_time' => '运行时间',
             'cc_task_retry_times' => '重试次数',
             'cc_task_create_at' => '创建日期',
-            'cc_task_update_at' => '最后更新日期',
-            'cc_task_priority' => '任务优先级',
+            'cc_task_update_at' => '最后更新',
+            'cc_task_priority' => '优先级',
             'cc_task_queue_id' => '队列任务ID',
             'cc_task_suspend_times' => '挂起次数',
-            'cc_task_abort_time' => '任务处理截止时间',
+            'cc_task_abort_time' => '截止时间',
         ];
     }
 

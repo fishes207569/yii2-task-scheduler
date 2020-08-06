@@ -14,8 +14,8 @@ class m200727_094709_cc_task extends Migration
           `cc_task_handler_from_system` varchar(16) DEFAULT NULL COMMENT '来源系统',
           `cc_task_handler_status` varchar(16) DEFAULT NULL COMMENT '状态',
           `cc_task_handler_count` int(11) unsigned DEFAULT '0' COMMENT '任务计数',
-          `cc_task_handler_create_at` datetime NOT NULL DEFAULT '1000-01-01 00:00:00' COMMENT '创建时间',
-          `cc_task_handler_update_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+          `cc_task_handler_create_at` int(11) NOT NULL DEFAULT '0' COMMENT '创建时间',
+          `cc_task_handler_update_at` int(11) NOT NULL DEFAULT '0' COMMENT '更新时间',
           `cc_task_handler_desc` varchar(255) NOT NULL COMMENT '任务描述',
           PRIMARY KEY (`cc_task_handler_id`),
           UNIQUE KEY `idx_handler_type` (`cc_task_handler_type`) USING BTREE

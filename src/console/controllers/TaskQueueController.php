@@ -36,14 +36,10 @@ class TaskQueueController extends Controller
                 Console::output($this->time . ' 捞取任务 ' . $tasks->count() . ' 条');
                 foreach ($tasks->each() as $task) {
                     /** @var Task $task */
-                    $delay = $task->cc_task_next_run_time - time();
-                    $delay = $delay > 0 ? $delay : 1;
-                    $message_id = \Yii::$app->queue->delay($delay)->push(new TaskJob([
-                        'task_id' => $task->cc_task_id,
-                    ]));
+                    $message_id = TaskService::addToQueue($task);
                     $task->cc_task_queue_id = $message_id;
                     if ($task->save()) {
-                        Console::output($this->time . ' 任务 task_id:' . $task->cc_task_id . ' 入队成功，待' . time() - $task->cc_task_next_run_time . '后执行');
+                        Console::output($this->time . ' 任务 task_id:' . $task->cc_task_id . ' 入队成功，待' . $delay . '秒后执行');
                     } else {
                         throw new \Exception(ModelHelper::getModelError($task));
                     }
