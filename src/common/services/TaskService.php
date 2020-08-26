@@ -247,11 +247,12 @@ class TaskService
             if ($task->handler->isNeedRedo()) {
                 $task->cc_task_status = TaskStatusEnum::TASK_STATUS_OPEN;
                 $task->cc_task_retry_times += 1;
+                $task->cc_task_next_run_time = self::getNextRunDate($task);
             } else {
                 $task->cc_task_status = TaskStatusEnum::TASK_STATUS_TERMINATED;
             }
             $task->cc_task_queue_id = 0;
-            $task->cc_task_next_run_time = self::getNextRunDate($task);
+
         } else {
 
             $task->cc_task_response_data = json_encode($result, JSON_UNESCAPED_UNICODE);
@@ -270,14 +271,13 @@ class TaskService
         if ($task->handler->isNeedRedo()) {
             $task->cc_task_status = TaskStatusEnum::TASK_STATUS_ERROR;
             $task->cc_task_retry_times += 1;
+            $task->cc_task_next_run_time = self::getNextRunDate($task);
         } else {
             $task->cc_task_status = TaskStatusEnum::TASK_STATUS_TERMINATED;
         }
         $task->cc_task_queue_id = 0;
         $task->cc_task_execute_log = sprintf("====%s====", $task->cc_task_retry_times)
             . $ex->getMessage() . $ex->getTraceAsString();
-
-        $task->cc_task_next_run_time = self::getNextRunDate($task);
 
         if (!$task->save()) {
             throw new Exception(json_encode($task->getErrors(), JSON_UNESCAPED_UNICODE));
@@ -290,16 +290,16 @@ class TaskService
         $time = time();
         switch ($retry_time) {
             case 1:
-                $retry_time = $time + 5 * 60;
+                $redo_time = $time + 5 * 60;
             case 2:
-                $retry_time = $time + 10 * 60;
+                $redo_time = $time + 10 * 60;
             case 3:
-                $retry_time = $time + 15 * 60;
+                $redo_time = $time + 15 * 60;
             case 4:
-                $retry_time = $time + 20 * 60;
+                $redo_time = $time + 20 * 60;
         }
-        if ($task->cc_task_abort_time >= $retry_time) {
-            return $retry_time;
+        if ($task->cc_task_abort_time >= $redo_time) {
+            return $redo_time;
         } else if ($task->cc_task_abort_time >= $time) {
             return $time;
         }

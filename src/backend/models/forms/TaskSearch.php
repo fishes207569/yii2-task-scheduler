@@ -54,7 +54,6 @@ class TaskSearch extends Model
         if (!$this->validate()) {
             return $dataProvider;
         }
-
         $query->filterWhere(['cc_task_status' => $this->task_status]);
         $query->andFilterWhere(['cc_task_type' => $this->task_type]);
         $query->andFilterWhere(['cc_task_key' => $this->task_key]);
