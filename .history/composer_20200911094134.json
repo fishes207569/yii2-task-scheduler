@@ -16,7 +16,7 @@
   "require": {
     "yiisoft/yii2": "*",
     "yiisoft/yii2-queue": "^dev-master",
-    "almasaeed2010/adminlte": "*",
+    "almasaeed2010/adminlte": "^2.4.0",
     "kartik-v/yii2-widget-select2": "@dev",
     "kartik-v/yii2-widget-datepicker": "@dev",
     "kartik-v/yii2-widget-datetimepicker": "*",
