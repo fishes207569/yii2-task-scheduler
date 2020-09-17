@@ -28,6 +28,7 @@ class ErrorEnum extends Enum
     const TASK_ACTION_LOCK_FAILED = 20015;
     const TASK_ABORT_TIME_INVALID = 20016;
     const TASK_EXEC_TIME_ERROR = 20017;
+    const TASK_UPDATE_TIMEOUT = 20018;
 
     public static function getMap(): array
     {
@@ -52,6 +53,7 @@ class ErrorEnum extends Enum
             self::TASK_ACTION_LOCK_FAILED => '任务操作加锁失败',
             self::TASK_ABORT_TIME_INVALID => '任务执行截止时间已过期',
             self::TASK_EXEC_TIME_ERROR => '任务执行截止时间间隔太短',
+            self::TASK_UPDATE_TIMEOUT => '数据已过期，刷新后重试',
         ];
     }
 

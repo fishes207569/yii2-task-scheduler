@@ -3,11 +3,12 @@
 namespace ccheng\task\console\controllers;
 
 use ccheng\task\common\consts\TaskConst;
+use ccheng\task\common\helpers\DateHelpers;
+use ccheng\task\common\helpers\ModelHelpers;
 use ccheng\task\common\helpers\RedisLock;
 use ccheng\task\common\models\Task;
 use ccheng\task\common\services\TaskService;
 use ccheng\task\common\queue\TaskJob;
-use common\helpers\ModelHelper;
 use yii\console\Controller;
 use yii\db\Exception;
 use yii\helpers\Console;
@@ -41,7 +42,7 @@ class TaskQueueController extends Controller
                     if ($task->save()) {
                         Console::output($this->time . ' 任务 task_id:' . $task->cc_task_id . ' 入队成功，待' . $delay . '秒后执行');
                     } else {
-                        throw new \Exception(ModelHelper::getModelError($task));
+                        throw new \Exception(ModelHelpers::getModelError($task));
                     }
                 }
 
@@ -69,5 +70,9 @@ class TaskQueueController extends Controller
             var_dump($e);
         }
 
+    }
+    public function actionTest(){
+        $a = class_exists(ModelHelpers::class);
+        var_dump($a);
     }
 }

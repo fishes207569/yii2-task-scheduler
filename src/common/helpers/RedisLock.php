@@ -37,7 +37,6 @@ class RedisLock
     {
         $this->key = $this->prefix . $key;
         $this->redis = Yii::$app->redis;
-        $this->redis->select(RedisEnum::DATABASE_BUSINESS);
         $this->token = uniqid(mt_rand(), true);
     }
 
@@ -76,7 +75,6 @@ class RedisLock
      */
     public function unlock()
     {
-        $this->redis->select(RedisEnum::DATABASE_BUSINESS);
         $script = <<<'LUA'
 if redis.call("get",KEYS[1]) == ARGV[1] then
     return redis.call("del",KEYS[1])

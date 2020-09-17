@@ -29,6 +29,10 @@ class TaskCreateForm extends Model
 {
     use ValidateTrait;
 
+    const ATTRIBUTE_MAP=[
+        'request_data'=>''
+    ];
+
     /**
      * 任务参数
      * @var string $request_data
@@ -47,7 +51,7 @@ class TaskCreateForm extends Model
      */
     public $key;
 
-    public $form_source = SystemEnum::SYSTEM_VIAUDIO;
+    public $form_source = SystemEnum::SYSTEM_MEDIA;
 
     /**
      * 运行时间
@@ -153,7 +157,7 @@ class TaskCreateForm extends Model
             }
             $transaction->commit();
 
-            return true;
+            return $task;
 
         } catch (Exception $ex) {
 

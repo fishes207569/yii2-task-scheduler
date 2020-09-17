@@ -11,6 +11,7 @@ use ccheng\task\common\enums\SystemEnum;
 use ccheng\task\common\enums\TaskStatusEnum;
 use ccheng\task\common\interfaces\TaskHandlerInterface;
 
+use yii\behaviors\OptimisticLockBehavior;
 use yii\behaviors\TimestampBehavior;
 use yii\db\ActiveRecord;
 
@@ -34,6 +35,7 @@ use yii\db\ActiveRecord;
  * @property string $cc_task_queue_id
  * @property string $cc_task_update_at
  * @property string $cc_task_abort_time
+ * @property string $cc_task_version
  * @property \ccheng\task\common\models\TaskHandler $taskHandler
  * @property TaskHandlerInterface | TaskHandler $handler
  * @property array $responseData
@@ -59,7 +61,7 @@ class Task extends ActiveRecord
     public function rules()
     {
         return [
-            [['cc_task_type', 'cc_task_from_system', 'cc_task_key', 'cc_task_request_data', 'cc_task_priority'], 'required'],
+            [['cc_task_type', 'cc_task_key', 'cc_task_priority'], 'required'],
             [['cc_task_retry_times', 'cc_task_id', 'cc_task_priority'], 'integer'],
             ['cc_task_type', 'exist', 'targetClass' => \ccheng\task\common\models\TaskHandler::class, 'targetAttribute' => 'cc_task_handler_type'],
             [['cc_task_status'], 'string'],
@@ -72,18 +74,19 @@ class Task extends ActiveRecord
             }],
             ['cc_task_from_system', 'in', 'range' => SystemEnum::getKeys()],
             [['cc_task_request_data', 'cc_task_response_data'], 'validateJson'],
-            [['cc_task_request_data', 'cc_task_response_data'], 'default', 'value' => '{}'],
+            [['cc_task_request_data', 'cc_task_response_data'], 'default', 'value' => []],
             ['cc_task_status', 'in', 'range' => TaskStatusEnum::getKeys()],
+            ['cc_task_from_system', 'default', 'value' => SystemEnum::SYSTEM_MEDIA],
             ['cc_task_next_run_time', 'default', 'value' => function () {
                 return time() + TaskConst::DEFAULT_RUN_SEC;
             }, 'on' => self::SCENARIO_INSERT, 'when' => function ($model) {
                 return $model->cc_task_status == TaskStatusEnum::TASK_STATUS_OPEN;
             }],
             [['cc_task_next_run_time'], function ($model, $attribute) {
-                if ($this->$attribute < time()) {
+                if ($this->cc_task_next_run_time < time()) {
                     $this->addError($attribute, ErrorEnum::getValue(ErrorEnum::TASK_EXEC_TIME_INVALID));
                 }
-                if ($this->$attribute <= strtotime('+' . TaskConst::MIN_RUN_SEC . ' sec')) {
+                if ($this->cc_task_next_run_time <= strtotime('+' . TaskConst::MIN_RUN_SEC . ' sec')) {
                     $this->addError($attribute, ErrorEnum::getValue(ErrorEnum::TASK_EXEC_TIME_ERROR));
                 }
                 return true;
@@ -96,17 +99,31 @@ class Task extends ActiveRecord
                 return $model->cc_task_status == TaskStatusEnum::TASK_STATUS_OPEN;
             }],
             ['cc_task_abort_time', function ($model, $attribute) {
-                if ($this->$attribute < time()) {
+                if ($this->cc_task_abort_time < time()) {
                     $this->addError($attribute, ErrorEnum::getValue(ErrorEnum::TASK_ABORT_TIME_INVALID));
                 }
-                if ($this->$attribute - time() < TaskConst::MIN_ABORT_SEC) {
+                if ($this->cc_task_abort_time - time() < TaskConst::MIN_ABORT_SEC) {
                     $this->addError($attribute, ErrorEnum::getValue(ErrorEnum::TASK_ABORT_TIME_ERROR));
                 }
                 return true;
             }, 'on' => [self::SCENARIO_INSERT, self::SCENARIO_UPDATE], 'when' => function ($model) {
                 return $model->cc_task_status == TaskStatusEnum::TASK_STATUS_OPEN;
             }],
-
+            ['cc_task_response_data', 'filter', 'filter' => function ($value) {
+                if ($this->getOldAttribute('cc_task_status') != TaskStatusEnum::TASK_STATUS_OPEN && $this->cc_task_status == TaskStatusEnum::TASK_STATUS_OPEN) {
+                    return [];
+                } else {
+                    return $value;
+                }
+            }],
+            ['cc_task_execute_log', 'filter', 'filter' => function ($value) {
+                if ($this->getOldAttribute('cc_task_status') != TaskStatusEnum::TASK_STATUS_OPEN && $this->cc_task_status == TaskStatusEnum::TASK_STATUS_OPEN) {
+                    return '';
+                } else {
+                    return $value;
+                }
+            }],
+            ['cc_task_execute_log', 'default', 'value' => ''],
             [['cc_task_execute_log', 'requestData', 'cc_task_is_sync'], 'safe'],
             ['cc_task_key', 'unique'],
             [['cc_task_type', 'cc_task_key', 'cc_task_from_system'], 'string', 'max' => 50],];
@@ -134,6 +151,7 @@ class Task extends ActiveRecord
             'cc_task_queue_id' => '队列任务ID',
             'cc_task_suspend_times' => '挂起次数',
             'cc_task_abort_time' => '截止时间',
+            'cc_task_version' => '数据版本号'
         ];
     }
 
@@ -143,6 +161,9 @@ class Task extends ActiveRecord
     public function behaviors()
     {
         return [
+            [
+                'class' => OptimisticLockBehavior::className(),
+            ],
             [
                 'class' => TimestampBehavior::class,
                 'attributes' => [
@@ -199,5 +220,9 @@ class Task extends ActiveRecord
         return json_decode($this->cc_task_response_data, true);
     }
 
+    public function optimisticLock()
+    {
+        return 'cc_task_version';
+    }
 
 }

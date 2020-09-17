@@ -10,12 +10,12 @@ use ccheng\task\common\abstracts\Enum;
  */
 class SystemEnum extends Enum
 {
-    const SYSTEM_VIAUDIO = 'viaudio';
+    const SYSTEM_MEDIA = 'media';
 
     public static function getMap(): array
     {
         return [
-            static::SYSTEM_VIAUDIO => 'CMS'
+            static::SYSTEM_MEDIA => '数媒平台'
         ];
     }
 }

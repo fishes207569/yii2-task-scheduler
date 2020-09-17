@@ -2,6 +2,9 @@
 
 namespace ccheng\task\common\models;
 
+use ccheng\task\common\enums\StatusEnum;
+use ccheng\task\common\enums\SystemEnum;
+use ccheng\task\common\enums\TaskStatusEnum;
 use Yii;
 use yii\behaviors\TimestampBehavior;
 use yii\db\ActiveRecord;
@@ -42,6 +45,8 @@ class TaskHandler extends \yii\db\ActiveRecord
             [['cc_task_handler_type'], 'string', 'max' => 64],
             [['cc_task_handler_class', 'cc_task_handler_desc'], 'string', 'max' => 255],
             [['cc_task_handler_from_system', 'cc_task_handler_status'], 'string', 'max' => 16],
+            ['cc_task_handler_from_system','default','value'=>SystemEnum::SYSTEM_MEDIA],
+            ['cc_task_handler_status','default','value'=>StatusEnum::STATUS_ENABLE],
             [['cc_task_handler_type'], 'unique'],
         ];
     }

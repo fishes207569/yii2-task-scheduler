@@ -4,7 +4,7 @@ use yii\db\Migration;
 
 class m200727_094709_cc_task extends Migration
 {
-    public function up()
+    public function safeUp()
     {
         $sql = <<<EOF
         CREATE TABLE `cc_task_handler` (
@@ -20,6 +20,9 @@ class m200727_094709_cc_task extends Migration
           PRIMARY KEY (`cc_task_handler_id`),
           UNIQUE KEY `idx_handler_type` (`cc_task_handler_type`) USING BTREE
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='任务处理器配置表';
+EOF;
+        $this->execute($sql);
+        $sql = <<<SQL
         CREATE TABLE `cc_task` (
           `cc_task_id` int(11) unsigned NOT NULL AUTO_INCREMENT,
           `cc_task_type` varchar(50) DEFAULT NULL COMMENT '任务类型',
@@ -29,7 +32,7 @@ class m200727_094709_cc_task extends Migration
           `cc_task_response_data` json DEFAULT NULL COMMENT '任务响应数据',
           `cc_task_execute_log` text COMMENT '任务执行日志',
           `cc_task_status` varchar(16) NOT NULL DEFAULT 'open' COMMENT '任务状态',
-          `cc_task_next_run_time` int(11) NOT NULL DEFAULT '0' COMMENT '下次重试时间',
+          `cc_task_next_run_time` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '下次重试时间',
           `cc_task_retry_times` int(11) NOT NULL DEFAULT '0' COMMENT '重试次数',
           `cc_task_create_at` int(11) unsigned DEFAULT NULL COMMENT '创建时间',
           `cc_task_update_at` int(11) unsigned DEFAULT NULL COMMENT '更新时间',
@@ -39,7 +42,10 @@ class m200727_094709_cc_task extends Migration
           `cc_task_abort_time` int(11) unsigned DEFAULT '0' COMMENT '最后截止时间',
           PRIMARY KEY (`cc_task_id`) USING BTREE,
           KEY `idx_task_key_type` (`cc_task_type`,`cc_task_key`)
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='任务计划表';
+        ) ENGINE=InnoDB AUTO_INCREMENT=290 DEFAULT CHARSET=utf8 COMMENT='任务计划表';
+SQL;
+        $this->execute($sql);
+        $sql = <<<SQL
         CREATE TABLE `cc_task_crud_log` (
           `cc_task_crud_log_id` int(11) unsigned NOT NULL AUTO_INCREMENT,
           `cc_task_crud_log_task_id` int(11) DEFAULT NULL COMMENT '任务ID',
@@ -52,11 +58,11 @@ class m200727_094709_cc_task extends Migration
           PRIMARY KEY (`cc_task_crud_log_id`),
           KEY `idx_task_type_id` (`cc_task_crud_log_task_id`,`cc_task_crud_log_type`) USING BTREE
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='任务变更日志表';
-EOF;
-        return $this->execute($sql);
+SQL;
+        $this->execute($sql);
     }
 
-    public function down()
+    public function safeDown()
     {
         $sql = <<<EOF
 DROP TABLE `cc_task`;DROP TABLE `cc_task_handler`;DROP TABLE `cc_task_crud_log`;

@@ -4,6 +4,7 @@ namespace ccheng\task\common\services;
 
 use ccheng\task\common\consts\TaskConst;
 use ccheng\task\common\helpers\DateHelpers;
+use ccheng\task\common\helpers\ModelHelpers;
 use ccheng\task\common\enums\ErrorEnum;
 use ccheng\task\common\helpers\RedisLock;
 use ccheng\task\common\models\Task;
@@ -13,6 +14,8 @@ use ccheng\task\common\models\TaskHandler;
 use ccheng\task\common\queue\TaskJob;
 use Exception;
 use \Yii;
+use yii\db\StaleObjectException;
+use yii\web\UnprocessableEntityHttpException;
 
 class TaskService
 {
@@ -27,10 +30,10 @@ class TaskService
     {
         $taskForm = new TaskCreateForm();
         $taskForm->attributes = $data;
-        if ($taskForm->validate()) {
-            return $taskForm->save();
+        if ($taskForm->validate() && $task = $taskForm->save(false)) {
+            return $task;
         } else {
-            throw new Exception(ModelHelper::getModelError($taskForm));
+            throw new Exception(ModelHelpers::getModelError($taskForm));
         }
     }
 
@@ -50,17 +53,24 @@ class TaskService
                     ErrorEnum::throwException(ErrorEnum::TASK_IS_RUNNING);
                 }
 
-                if (\Yii::$app->queue->isWaiting($task->cc_task_queue_id)) {
-                    \Yii::$app->queue->remove($task->cc_task_queue_id);
-                    $task->load($data, '');
-                    $task->scenario = Task::SCENARIO_UPDATE;
-                    return $task->update();
-                } else {
-                    ErrorEnum::throwException(ErrorEnum::TASK_IS_RUNNING);
+                if ($task->cc_task_queue_id && \Yii::$app->queue->isWaiting($task->cc_task_queue_id)) {
+                    if(!\Yii::$app->queue->remove($task->cc_task_queue_id)){
+                       ErrorEnum::throwException(ErrorEnum::TASK_IS_RUNNING);
+                    }
                 }
+                $task->load($data, '');
+                $task->scenario = Task::SCENARIO_UPDATE;
+                if($task->update()){
+                    return $task;
+                }else{
+                    ErrorEnum::throwException(ErrorEnum::TASK_UPDATE_FAILED);
+                }
+
             } else {
                 ErrorEnum::throwException(ErrorEnum::TASK_ACTION_LOCK_FAILED);
             }
+        }catch (StaleObjectException $e){
+            ErrorEnum::throwException(ErrorEnum::TASK_UPDATE_TIMEOUT);
         } catch (\Exception $e) {
             ErrorEnum::throwException($e->getCode());
         } finally {
@@ -126,6 +136,8 @@ class TaskService
             } else {
                 ErrorEnum::throwException(ErrorEnum::TASK_ACTION_LOCK_FAILED);
             }
+        }catch (StaleObjectException $e){
+            ErrorEnum::throwException(ErrorEnum::TASK_UPDATE_TIMEOUT);
         } catch (\Exception $e) {
             ErrorEnum::throwException($e->getCode());
         } finally {
@@ -148,19 +160,20 @@ class TaskService
         }
         if ($task->isNewRecord) {
             $task->loadDefaultValues();
+            $task->scenario = Task::SCENARIO_INSERT;
         }
 
         $task->load($taskData, '');
         if (!$task->isNewRecord && empty($task->dirtyAttributes)) {
             return $task;
         }
-        if ($task->validate()) {
-            var_dump($task->cc_task_request_data);
-            if ($task->save()) {
+        if ($task->validate() && $task->save(false)) {
+
                 return $task;
-            }
+
+        }else{
+            throw new UnprocessableEntityHttpException(ModelHelpers::getModelError($task));
         }
-        return false;
     }
 
     public static function findModelByKey($key)
@@ -203,7 +216,7 @@ class TaskService
             }
 
             $transaction->commit();
-
+            return true;
         } catch (Exception $ex) {
             $transaction->rollBack();
             try {

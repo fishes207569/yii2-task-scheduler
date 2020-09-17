@@ -39,6 +39,9 @@ class TaskCurdLog extends \yii\db\ActiveRecord
             [['cc_task_crud_log_old_value', 'cc_task_crud_log_new_value'], 'default', 'value' => '[]'],
             [['cc_task_crud_log_create_at', 'cc_task_crud_log_update_at'], 'safe'],
             [['cc_task_crud_log_type'], 'string', 'max' => 16],
+            ['cc_task_crud_log_operator', 'default', 'value' => function ($model, $attribute) {
+                return \Yii::$app->user->getId() ?? 0;
+            }]
         ];
     }
 

@@ -1,8 +1,7 @@
 <?php
 namespace ccheng\task\common\helpers;
 
-class ModelHelper
-{
+class ModelHelpers{
     public static function getModelError($model)
     {
         /** @var ActiveRecord $model */
@@ -18,4 +17,3 @@ class ModelHelper
         return array_shift($firstError);
     }
 }
-?>

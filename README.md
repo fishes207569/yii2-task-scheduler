@@ -51,12 +51,24 @@ main.php 文件 controllerMap 中加入控制器映射
 php yii task/scheduler
 ```
 
-添加事件管理模块
+添加任务管理模块
 ```php
 return [
 	'modules' => [
 		'task' => [
                 'class'=>'ccheng\task\backend\Module',
+		]
+		...
+	]
+];
+```
+
+添加任务管理接口模块
+```php
+return [
+	'modules' => [
+		'task' => [
+                'class'=>'ccheng\task\api\Module',
 		]
 		...
 	]

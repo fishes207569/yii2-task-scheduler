@@ -73,7 +73,7 @@ class TaskHandlerController extends Controller
         if ($model->load(Yii::$app->request->post()) && $model->save()) {
             return $this->redirect(['view', 'id' => $model->cc_task_handler_id]);
         }
-        !$model->cc_task_handler_from_system && $model->cc_task_handler_from_system = SystemEnum::SYSTEM_VIAUDIO;
+        !$model->cc_task_handler_from_system && $model->cc_task_handler_from_system = SystemEnum::SYSTEM_MEDIA;
         is_null($model->cc_task_handler_status) && $model->cc_task_handler_status = StatusEnum::STATUS_ENABLE;
         return $this->render('create', [
             'model' => $model,
@@ -94,7 +94,7 @@ class TaskHandlerController extends Controller
         if ($model->load(Yii::$app->request->post()) && $model->save()) {
             return $this->redirect(['index', 'id' => $model->cc_task_handler_id]);
         }
-        !$model->cc_task_handler_from_system && $model->cc_task_handler_from_system = SystemEnum::SYSTEM_VIAUDIO;
+        !$model->cc_task_handler_from_system && $model->cc_task_handler_from_system = SystemEnum::SYSTEM_MEDIA;
         is_null($model->cc_task_handler_status) && $model->cc_task_handler_status = StatusEnum::STATUS_ENABLE;
 
         return $this->render('update', [

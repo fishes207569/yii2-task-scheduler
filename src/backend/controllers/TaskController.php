@@ -88,7 +88,7 @@ class TaskController extends Controller
         if ($model->load(Yii::$app->request->post()) && $model->save()) {
             return $this->redirect(['view', 'id' => $model->cc_task_id]);
         }
-        !$model->cc_task_from_system && $model->cc_task_from_system = SystemEnum::SYSTEM_VIAUDIO;
+        !$model->cc_task_from_system && $model->cc_task_from_system = SystemEnum::SYSTEM_MEDIA;
         !$model->cc_task_status && $model->cc_task_status = TaskStatusEnum::TASK_STATUS_OPEN;
         !$model->cc_task_next_run_time && $model->cc_task_next_run_time = date('Y-m-d H:i:s', strtotime('+5 min'));
         return $this->render('create', [
