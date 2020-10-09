@@ -39,6 +39,7 @@ class TaskQueueController extends Controller
                     /** @var Task $task */
                     $message_id = TaskService::addToQueue($task);
                     $task->cc_task_queue_id = $message_id;
+                    $delay = $task->cc_task_next_run_time >= time() ? $task->cc_task_next_run_time - time() : 1;
                     if ($task->save()) {
                         Console::output($this->time . ' 任务 task_id:' . $task->cc_task_id . ' 入队成功，待' . $delay . '秒后执行');
                     } else {
