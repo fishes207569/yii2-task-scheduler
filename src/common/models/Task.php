@@ -204,7 +204,7 @@ class Task extends ActiveRecord
 
     public function validateJson($attribute, $param)
     {
-        json_decode(trim($this->$attribute));
+        $this->$attribute = json_decode(trim($this->$attribute));
         if (json_last_error() != JSON_ERROR_NONE) {
             $this->addError($attribute, "不是Json格式");
         }

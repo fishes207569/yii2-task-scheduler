@@ -90,6 +90,9 @@ class TaskService
         $lock = new RedisLock($task->cc_task_key);
         try {
             if ($lock->repeatLock(TaskConst::TASK_LOCK_TIME, TaskConst::TASK_LOCK_COUNT)) {
+                if($task->cc_task_abort_time < time() ){
+                    ErrorEnum::throwException(ErrorEnum::TASK_ABORT_TIME_INVALID);
+                }
                 if ($task->cc_task_status == TaskStatusEnum::TASK_STATUS_RUN) {
                     ErrorEnum::throwException(ErrorEnum::TASK_IS_RUNNING);
                 }
