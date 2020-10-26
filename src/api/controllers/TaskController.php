@@ -66,7 +66,7 @@ class TaskController extends BaseController
 
     }
 
-    public function actionExecture()
+    public function actionExecute()
     {
         try {
             $task = $this->getModel();
