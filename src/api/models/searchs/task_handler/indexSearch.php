@@ -30,7 +30,9 @@ class indexSearch extends BaseListSearch
     {
         return array_merge(parent::rules(), [
             ['cc_task_handler_from_system', 'in', 'range' => SystemEnum::getKeys()],
-            ['cc_task_handler_status', 'in', 'range' => StatusEnum::getKeys()]
+            ['cc_task_handler_status', 'in', 'range' => StatusEnum::getKeys()],
+            ['cc_task_handler_type','safe']
+
         ]);
     }
 
