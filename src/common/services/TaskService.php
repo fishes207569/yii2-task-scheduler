@@ -54,22 +54,22 @@ class TaskService
                 }
 
                 if ($task->cc_task_queue_id && \Yii::$app->queue->isWaiting($task->cc_task_queue_id)) {
-                    if(!\Yii::$app->queue->remove($task->cc_task_queue_id)){
-                       ErrorEnum::throwException(ErrorEnum::TASK_IS_RUNNING);
+                    if (!\Yii::$app->queue->remove($task->cc_task_queue_id)) {
+                        ErrorEnum::throwException(ErrorEnum::TASK_IS_RUNNING);
                     }
                 }
                 $task->load($data, '');
                 $task->scenario = Task::SCENARIO_UPDATE;
-                if($task->update()){
+                if ($task->update()) {
                     return $task;
-                }else{
+                } else {
                     ErrorEnum::throwException(ErrorEnum::TASK_UPDATE_FAILED);
                 }
 
             } else {
                 ErrorEnum::throwException(ErrorEnum::TASK_ACTION_LOCK_FAILED);
             }
-        }catch (StaleObjectException $e){
+        } catch (StaleObjectException $e) {
             ErrorEnum::throwException(ErrorEnum::TASK_UPDATE_TIMEOUT);
         } catch (\Exception $e) {
             ErrorEnum::throwException($e->getCode());
@@ -90,7 +90,7 @@ class TaskService
         $lock = new RedisLock($task->cc_task_key);
         try {
             if ($lock->repeatLock(TaskConst::TASK_LOCK_TIME, TaskConst::TASK_LOCK_COUNT)) {
-                if($task->cc_task_abort_time < time() ){
+                if ($task->cc_task_abort_time < time()) {
                     ErrorEnum::throwException(ErrorEnum::TASK_ABORT_TIME_INVALID);
                 }
                 if ($task->cc_task_status == TaskStatusEnum::TASK_STATUS_RUN) {
@@ -139,7 +139,7 @@ class TaskService
             } else {
                 ErrorEnum::throwException(ErrorEnum::TASK_ACTION_LOCK_FAILED);
             }
-        }catch (StaleObjectException $e){
+        } catch (StaleObjectException $e) {
             ErrorEnum::throwException(ErrorEnum::TASK_UPDATE_TIMEOUT);
         } catch (\Exception $e) {
             ErrorEnum::throwException($e->getCode());
@@ -172,9 +172,9 @@ class TaskService
         }
         if ($task->validate() && $task->save(false)) {
 
-                return $task;
+            return $task;
 
-        }else{
+        } else {
             throw new UnprocessableEntityHttpException(ModelHelpers::getModelError($task));
         }
     }
@@ -279,6 +279,9 @@ class TaskService
         if (!$task->save()) {
             throw new Exception(json_encode($task->getErrors(), JSON_UNESCAPED_UNICODE));
         }
+        if ($task->cc_task_status == TaskStatusEnum::TASK_STATUS_TERMINATED) {
+            $task->handler->afterFailed();
+        }
     }
 
     public static function processFailed(Exception $ex, Task $task)
@@ -297,6 +300,9 @@ class TaskService
 
         if (!$task->save()) {
             throw new Exception(json_encode($task->getErrors(), JSON_UNESCAPED_UNICODE));
+        }
+        if ($task->cc_task_status == TaskStatusEnum::TASK_STATUS_TERMINATED) {
+            $task->handler->afterFailed();
         }
     }
 

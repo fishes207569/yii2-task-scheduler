@@ -43,10 +43,16 @@ abstract class TaskHandler implements TaskHandlerInterface
         return false;
     }
 
+    /** 执行失败钩子 */
+    public function afterFailed()
+    {
+        return true;
+    }
+
     public function __call($name, $arguments)
     {
         if ($name == 'process') {
-            if($this->validateAndPreprocess()){
+            if ($this->validateAndPreprocess()) {
                 return $this->process();
             }
         }
