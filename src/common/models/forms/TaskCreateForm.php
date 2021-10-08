@@ -74,7 +74,7 @@ class TaskCreateForm extends Model
     {
         return [
             [['type', 'key'], 'required'],
-            ['request_data', 'validateJson'],
+            ['request_data', 'safe'],
             ['type', 'checkType'],
             ['priority', 'integer'],
             ['type', 'exist', 'targetClass' => TaskHandler::class, 'targetAttribute' => 'cc_task_handler_type'],

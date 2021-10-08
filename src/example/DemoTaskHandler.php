@@ -15,7 +15,7 @@ class DemoTaskHandler extends TaskHandler
 
     public function validateAndPreprocess()
     {
-        $this->params = $this->task->requestData;
+        $this->params = $this->task->cc_task_request_data;
         if (isset($this->params['aa']) && $this->params['aa'] < 100) {
             throw new UserException('金额异常');
         }

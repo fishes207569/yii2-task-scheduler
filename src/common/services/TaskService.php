@@ -271,7 +271,7 @@ class TaskService
 
         } else {
 
-            $task->cc_task_response_data = json_encode($result, JSON_UNESCAPED_UNICODE);
+            $task->cc_task_response_data = $result;
             $task->cc_task_status = TaskStatusEnum::TASK_STATUS_CLOSE;
 
         }

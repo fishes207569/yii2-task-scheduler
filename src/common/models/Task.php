@@ -213,15 +213,6 @@ class Task extends ActiveRecord
 
     }
 
-    public function getRequestData()
-    {
-        return json_decode($this->cc_task_request_data, true);
-    }
-
-    public function getResponseData()
-    {
-        return json_decode($this->cc_task_response_data, true);
-    }
 
     public function optimisticLock()
     {

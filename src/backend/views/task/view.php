@@ -47,7 +47,7 @@ $this->params['breadcrumbs'][] = $this->title;
                         'model' => $model,
                         'name' => 'cc_task_request_data',
                         'attribute' => 'cc_task_request_data',
-                        'value' => $model->cc_task_request_data,
+                        'value' => json_encode($model->cc_task_request_data),
                         'clientOptions' => ['modes' => ['tree'], 'mode' => 'tree'],
 
                     ]);
@@ -62,7 +62,7 @@ $this->params['breadcrumbs'][] = $this->title;
                             'model' => $model,
                             'name' => 'cc_task_response_data',
                             'attribute' => 'cc_task_response_data',
-                            'value' => $model->cc_task_response_data,
+                            'value' => json_encode($model->cc_task_response_data),
                             'clientOptions' => ['modes' => ['tree'], 'mode' => 'tree'],
 
                         ]);
